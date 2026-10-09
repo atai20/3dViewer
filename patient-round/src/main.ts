@@ -2,7 +2,8 @@ import '@fontsource/fraunces/500.css';
 import '@fontsource/outfit/400.css';
 import '@fontsource/outfit/500.css';
 import { createAtlasViewer, type AtlasViewer } from '@authorod/svitylo-3d-anatomy-atlas/core';
-import { contextIds, findings, patient, severityLabel, type Finding } from './case.ts';
+import { contextIds, type Finding } from './case.ts';
+import { Fusion } from './fusion.ts';
 import { SceneOverlay, type CutAxis, type Tool } from './overlay.ts';
 import './style.css';
 
@@ -21,40 +22,19 @@ const lookupForm = document.querySelector<HTMLFormElement>('#lookup')!;
 const lookupQuery = document.querySelector<HTMLInputElement>('#lookup-query')!;
 const lookupResults = document.querySelector<HTMLUListElement>('#lookup-results')!;
 
-document.querySelector<HTMLElement>('#patient-name')!.textContent = patient.name;
-document.querySelector<HTMLElement>('#patient-meta')!.textContent = patient.meta;
-document.querySelector<HTMLElement>('#patient-story')!.textContent = patient.story;
-
 let viewer: AtlasViewer | null = null;
 let overlay: SceneOverlay | null = null;
 let walkToken = 0;
+const fusion = new Fusion();
+
+function latinOf(id: string): string | undefined {
+  return viewer?.catalog.names.label(id, 'la');
+}
 
 function endWalk(): void {
   walkButton.dataset.running = 'false';
   walkButton.textContent = 'Walk the marks';
-  walkHint.textContent = 'Flies the camera to each marked structure.';
-}
-
-function renderFindings(): void {
-  findingsList.replaceChildren();
-  findings.forEach((finding, index) => {
-    const item = document.createElement('li');
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = `finding ${finding.severity}`;
-    button.dataset.finding = finding.id;
-    button.innerHTML = `<i></i><span class="kicker"></span><strong></strong><span class="latin"></span><span class="note"></span>`;
-    button.querySelector('.kicker')!.textContent = `${String(index + 1).padStart(2, '0')}  ${severityLabel[finding.severity]}`;
-    button.querySelector('strong')!.textContent = finding.title;
-    button.querySelector('.note')!.textContent = finding.note;
-    const latin = viewer?.catalog.names.label(finding.structureId, 'la');
-    const latinNode = button.querySelector('.latin')!;
-    if (latin && latin !== finding.structureId && latin !== finding.title) latinNode.textContent = latin;
-    else latinNode.remove();
-    button.addEventListener('click', () => choose(finding));
-    item.append(button);
-    findingsList.append(item);
-  });
+  walkHint.textContent = 'Flies the camera to each mark still on the body.';
 }
 
 function refresh(): void {
@@ -76,6 +56,11 @@ function refresh(): void {
   findingsList.querySelectorAll<HTMLButtonElement>('.finding').forEach((button) => {
     button.classList.toggle('is-current', button.dataset.finding === overlay!.activeId);
   });
+  if (overlay.activeId && overlay.activeId !== fusion.activeId) {
+    fusion.activeId = overlay.activeId;
+    fusion.showDesk('region');
+    fusion.render(latinOf);
+  }
   const pending = overlay.pendingMeasure();
   if (overlay.tool === 'orbit') hud.textContent = pending ?? '';
   else if (!overlay.probeCaption()) hud.textContent = pending ?? toolHint(overlay.tool);
@@ -94,9 +79,31 @@ function choose(finding: Finding, fromWalk = false): void {
   if (!fromWalk) {
     walkToken++;
     endWalk();
+    fusion.showDesk('region');
   }
+  fusion.activeId = finding.id;
   overlay.setActive(finding.id);
   overlay.focusFinding(finding);
+  fusion.render(latinOf);
+  refresh();
+}
+
+async function applyBody(focus: boolean): Promise<void> {
+  if (!viewer || !overlay) return;
+  const visible = fusion.visible();
+  const ids = visible.map((finding) => finding.structureId);
+  if (ids.length) await viewer.addStructures(ids, { select: false, focus: false });
+  overlay.setFindings(visible);
+  if (ids.length) viewer.select(ids, 'replace');
+  else viewer.clearSelection();
+  viewer.setTransparency(0.78);
+  overlay.rebuild();
+  const active = fusion.active();
+  if (focus && active) {
+    overlay.setActive(active.id);
+    overlay.focusFinding(active);
+  }
+  fusion.render(latinOf);
   refresh();
 }
 
@@ -141,18 +148,13 @@ async function boot(): Promise<void> {
           ? `${event.failedFiles} files failed`
           : 'Placing the marks…';
   });
-  renderFindings();
+  fusion.render(latinOf);
   refresh();
 
   try {
-    const ids = [...new Set([...contextIds, ...findings.map((finding) => finding.structureId)])];
+    const ids = [...new Set([...contextIds, ...fusion.approved.map((finding) => finding.structureId)])];
     const result = await atlas.addStructures(ids, { select: false, focus: false });
-    atlas.select(findings.map((finding) => finding.structureId), 'replace');
-    atlas.setTransparency(0.78);
-    overlay.rebuild();
-    overlay.focusFinding(findings[0]!);
-    renderFindings();
-    refresh();
+    await applyBody(true);
     stage.dataset.state = 'ready';
     if (result.failed.length) hud.textContent = `${result.failed.length} files did not load. The marks that did are on the model.`;
     if (!overlay.pinsReady()) hud.textContent = 'The scene loaded, but a mark could not find its surface.';
@@ -178,7 +180,7 @@ async function walk(): Promise<void> {
   const token = ++walkToken;
   walkButton.dataset.running = 'true';
   walkButton.textContent = 'Stop the walk';
-  for (const finding of findings) {
+  for (const finding of fusion.visible()) {
     if (token !== walkToken) return;
     walkHint.textContent = finding.note;
     choose(finding, true);
@@ -256,16 +258,17 @@ async function reveal(id: string, title: string): Promise<void> {
   await viewer.addStructures([id], { select: false, focus: false });
   viewer.focus([id]);
   overlay.addLookup(id, title);
-  const keep = [id, ...findings.map((finding) => finding.structureId)];
+  const keep = [id, ...fusion.visible().map((finding) => finding.structureId)];
   viewer.select(keep, 'replace');
   refresh();
 }
 
 window.addEventListener('keydown', (event) => {
   if (event.target instanceof HTMLInputElement || event.metaKey || event.ctrlKey || event.altKey) return;
+  const visible = fusion.visible();
   const digit = Number(event.key);
-  if (digit >= 1 && digit <= findings.length) {
-    const finding = findings[digit - 1];
+  if (digit >= 1 && digit <= visible.length) {
+    const finding = visible[digit - 1];
     if (finding) choose(finding);
     return;
   }
@@ -277,6 +280,11 @@ window.addEventListener('keydown', (event) => {
   if (key === 'o') overlay?.setTool('orbit');
   if (key === 'i') overlay?.setImpacts(!overlay?.impacts);
   if (key === 'c') overlay?.setCutaway(!overlay?.cutaway);
+});
+
+fusion.bind({
+  onVisible: () => void applyBody(false),
+  onFocus: (finding) => choose(finding),
 });
 
 void boot();

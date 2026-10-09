@@ -57,6 +57,7 @@ export class SceneOverlay {
   cutaway = false;
   cutAxis: CutAxis = 'y';
   activeId = findings[0]!.id;
+  private chartFindings: Finding[] = findings;
   measures: MeasureRecord[] = [];
   notes: NoteRecord[] = [];
 
@@ -105,11 +106,16 @@ export class SceneOverlay {
     this.raf = requestAnimationFrame(this.frame);
   }
 
+  setFindings(next: Finding[]): void {
+    this.chartFindings = next;
+    if (!next.some((item) => item.id === this.activeId)) this.activeId = next[0]?.id ?? '';
+  }
+
   rebuild(): void {
     this.clearPins(this.pins);
     this.refreshKept();
     this.centers = structureCenters(this.viewer);
-    for (const finding of findings) {
+    for (const finding of this.chartFindings) {
       const outward = new Vector3(...finding.outward);
       const anchor = surfaceAnchor(this.viewer, finding.structureId, outward);
       if (!anchor) continue;
@@ -122,7 +128,7 @@ export class SceneOverlay {
         normal: anchor.normal,
         className: `tag ${finding.severity}`,
       });
-      if (finding.id === 'rib' || finding.id === 'tibia') {
+      if (finding.impact) {
         const impact = makeImpact(severityColor[finding.severity]);
         impact.visible = this.impacts;
         pin.group.add(impact);
@@ -210,10 +216,10 @@ export class SceneOverlay {
   }
 
   focusFinding(finding: Finding): void {
-    const previous = this.viewer.getState()?.selected ?? findings.map((item) => item.structureId);
+    const previous = this.viewer.getState()?.selected ?? this.chartFindings.map((item) => item.structureId);
     this.viewer.select([finding.structureId], 'replace');
     this.viewer.setView(finding.view);
-    this.viewer.select(previous.length ? previous : findings.map((item) => item.structureId), 'replace');
+    this.viewer.select(previous.length ? previous : this.chartFindings.map((item) => item.structureId), 'replace');
   }
 
   addLookup(structureId: string, title: string): void {
@@ -266,7 +272,7 @@ export class SceneOverlay {
 
   private refreshKept(): void {
     this.kept = protectedIds(this.viewer, [
-      ...findings.map((finding) => finding.structureId),
+      ...this.chartFindings.map((finding) => finding.structureId),
       ...this.lookups.map((pin) => pin.id),
     ]);
   }
@@ -290,7 +296,7 @@ export class SceneOverlay {
     label.innerHTML = `<span>${options.kicker}</span><strong></strong>`;
     label.querySelector('strong')!.textContent = options.title;
     label.addEventListener('click', () => {
-      const finding = findings.find((item) => item.id === options.id);
+      const finding = this.chartFindings.find((item) => item.id === options.id);
       if (finding) {
         this.activeId = finding.id;
         this.syncActive();
@@ -448,7 +454,7 @@ export class SceneOverlay {
     if (!hit) return;
     if (this.tool === 'mark') this.dropNote(hit);
     else this.dropMeasure(hit);
-    const keep = [...this.lookups.map((pin) => pin.id), ...findings.map((finding) => finding.structureId)];
+    const keep = [...this.lookups.map((pin) => pin.id), ...this.chartFindings.map((finding) => finding.structureId)];
     this.viewer.select(keep, 'replace');
   };
 
