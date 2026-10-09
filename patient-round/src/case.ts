@@ -1,6 +1,13 @@
 import type { StandardView } from '@authorod/svitylo-3d-anatomy-atlas/core';
 
 export type Severity = 'critical' | 'watch' | 'clear';
+export type BodyRegion = 'chest' | 'abdomen' | 'limb';
+export type Specialty = 'trauma' | 'chest' | 'abdomen' | 'ortho';
+
+export interface Observation {
+  label: string;
+  value: string;
+}
 
 export interface Finding {
   id: string;
@@ -11,7 +18,16 @@ export interface Finding {
   /** Preferred outward direction in patient space: +X is the patient's left, +Y up, +Z anterior. */
   outward: [number, number, number];
   view: StandardView;
+  /** Minutes after arrival. The timeline hides anything later than the slider. */
+  minute: number;
+  region: BodyRegion;
+  impact?: boolean;
+  condition: string;
+  meds: string[];
+  observations: Observation[];
 }
+
+export const NOW_MINUTE = 40;
 
 export const patient = {
   name: 'Nora Ellison',
@@ -29,6 +45,15 @@ export const findings: Finding[] = [
     severity: 'critical',
     outward: [0.55, 0.2, 1],
     view: 'left',
+    minute: 8,
+    region: 'chest',
+    impact: true,
+    condition: 'Left sixth rib fracture',
+    meds: ['Analgesia not charted yet'],
+    observations: [
+      { label: 'Chest', value: 'Tender, crepitus' },
+      { label: 'SpO₂', value: '94% on air' },
+    ],
   },
   {
     id: 'lung',
@@ -38,6 +63,14 @@ export const findings: Finding[] = [
     severity: 'watch',
     outward: [1, 0.15, 0.55],
     view: 'left',
+    minute: 12,
+    region: 'chest',
+    condition: 'Pulmonary contusion',
+    meds: ['Oxygen not started'],
+    observations: [
+      { label: 'Film', value: 'No large pneumothorax' },
+      { label: 'SpO₂', value: '94% on air' },
+    ],
   },
   {
     id: 'ventricle',
@@ -47,6 +80,11 @@ export const findings: Finding[] = [
     severity: 'watch',
     outward: [0.85, 0.25, 0.7],
     view: 'anterior',
+    minute: 18,
+    region: 'chest',
+    condition: 'Possible cardiac injury',
+    meds: ['No cardiac medication charted'],
+    observations: [{ label: 'Troponin', value: 'Rising' }],
   },
   {
     id: 'liver',
@@ -56,6 +94,11 @@ export const findings: Finding[] = [
     severity: 'watch',
     outward: [-0.65, 0.25, 1],
     view: 'anterior',
+    minute: 22,
+    region: 'abdomen',
+    condition: 'Possible capsular laceration',
+    meds: ['No abdominal medication charted'],
+    observations: [{ label: 'CT', value: 'Still open' }],
   },
   {
     id: 'tibia',
@@ -65,6 +108,12 @@ export const findings: Finding[] = [
     severity: 'critical',
     outward: [0.35, 0.1, 1],
     view: 'left',
+    minute: 28,
+    region: 'limb',
+    impact: true,
+    condition: 'Transverse tibial shaft fracture',
+    meds: ['Splint ordered, not recorded as placed'],
+    observations: [{ label: 'Pulses', value: 'Present' }],
   },
   {
     id: 'spleen',
@@ -74,8 +123,29 @@ export const findings: Finding[] = [
     severity: 'clear',
     outward: [1, 0.2, 0.15],
     view: 'left',
+    minute: 36,
+    region: 'abdomen',
+    condition: 'No splenic injury on the first look',
+    meds: ['None for the spleen'],
+    observations: [{ label: 'Ultrasound', value: 'No free fluid, no blush' }],
   },
 ];
+
+/** A chart proposal the queue can approve onto the body. Not on the chart until then. */
+export const fibulaProposal: Finding = {
+  id: 'fibula',
+  structureId: 'skeletal.fibula_l',
+  title: 'Left fibula',
+  note: 'Tender over the lateral leg after the kerb strike. Watch for a second fracture.',
+  severity: 'watch',
+  outward: [-0.15, 0.05, 1],
+  view: 'left',
+  minute: 40,
+  region: 'limb',
+  condition: 'Possible fibular fracture',
+  meds: ['None yet'],
+  observations: [{ label: 'Exam', value: 'Lateral tenderness' }],
+};
 
 /** Groups placed on the scene so the marks sit in a body, not in empty space. */
 export const contextIds = [
@@ -104,3 +174,15 @@ export const severityColor: Record<Severity, string> = {
   watch: '#e2a53a',
   clear: '#3e9a6d',
 };
+
+const specialtyRegion: Record<Exclude<Specialty, 'trauma'>, BodyRegion> = {
+  chest: 'chest',
+  abdomen: 'abdomen',
+  ortho: 'limb',
+};
+
+export function findingVisible(finding: Finding, minute: number, specialty: Specialty): boolean {
+  if (finding.minute > minute) return false;
+  if (specialty === 'trauma') return true;
+  return finding.region === specialtyRegion[specialty];
+}

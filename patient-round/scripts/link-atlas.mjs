@@ -37,11 +37,16 @@ if (!existsSync(join(dataRoot, 'manifest.json'))) {
 function link(target, path) {
   mkdirSync(dirname(path), { recursive: true });
   if (existsSync(path)) {
-    const current = readlinkSync(path);
+    let current = '';
+    try {
+      current = readlinkSync(path);
+    } catch {
+      current = '';
+    }
     if (current === target) return;
     rmSync(path, { recursive: true, force: true });
   }
-  symlinkSync(target, path);
+  symlinkSync(target, path, process.platform === 'win32' ? 'junction' : undefined);
 }
 
 link(join(atlasRoot, 'packages/atlas'), join(appRoot, 'vendor/atlas'));

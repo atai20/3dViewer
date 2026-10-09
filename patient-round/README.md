@@ -2,6 +2,8 @@
 
 A fictional trauma round on the [Svitylo 3D Anatomy Atlas](https://github.com/authorOd/3d-anatomy-atlas). Nora Ellison’s injuries are marked on the model. The tools that matter — pins, impact arrows, a surface probe, calipers, stuck notes, and a cutaway plane — live in the 3D scene.
 
+The same screen is the web dashboard from the routing design. The timeline and specialty decide which approved findings stay solid on the body. Chat classifies a request as a chart update, a clinical question, or a screening check, and can only queue a suggestion. Approving a suggestion is what writes the chart and refreshes the model.
+
 This is a teaching toy. It is not a diagnosis, and the atlas models are a preview that has not had a full anatomical review.
 
 ## Run
