@@ -6,7 +6,7 @@ This is a teaching toy. It is not a diagnosis, and the atlas models are a previe
 
 ## Run
 
-The atlas checkout has to be available. This app looks for `/tmp/3d-anatomy-atlas`, `../3d-anatomy-atlas`, or `ATLAS_ROOT`.
+The atlas checkout has to sit next to this folder as `../3d-anatomy-atlas` (it is included in this project). `ATLAS_ROOT` overrides that.
 
 ```sh
 cd patient-round

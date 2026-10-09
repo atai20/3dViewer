@@ -7,8 +7,8 @@ const appRoot = resolve(here, '..');
 
 const candidates = [
   process.env.ATLAS_ROOT,
-  '/tmp/3d-anatomy-atlas',
   resolve(appRoot, '../3d-anatomy-atlas'),
+  '/tmp/3d-anatomy-atlas',
   resolve(appRoot, '../../tmp/3d-anatomy-atlas'),
 ].filter(Boolean);
 
