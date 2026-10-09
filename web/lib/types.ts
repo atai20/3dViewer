@@ -20,6 +20,11 @@ export interface Finding {
   specialties: Exclude<Specialty, "all">[];
   meds: string[];
   observations: Observation[];
+  /** Where the pin leaves the surface, in patient space: +X is the patient's left, +Y up, +Z anterior. */
+  outward: [number, number, number];
+  view: "anterior" | "posterior" | "left" | "right" | "superior" | "inferior";
+  /** Draws an impact arrow on the pin, for injuries with a known strike direction. */
+  impact?: boolean;
 }
 
 export interface Reminder {

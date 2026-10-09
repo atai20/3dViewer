@@ -35,6 +35,8 @@ const nora: Patient = {
       specialties: ["cardiology", "primary"],
       meds: ["No statin"],
       observations: [{ label: "LDL", value: "142 mg/dL" }],
+      outward: [0.35, 0.55, 0.85],
+      view: "anterior",
     },
     {
       id: "rib",
@@ -51,6 +53,9 @@ const nora: Patient = {
         { label: "Chest", value: "Tender, crepitus" },
         { label: "SpO₂", value: "94% on air" },
       ],
+      outward: [0.55, 0.2, 1],
+      view: "left",
+      impact: true,
     },
     {
       id: "lung",
@@ -64,6 +69,8 @@ const nora: Patient = {
       specialties: ["trauma"],
       meds: ["Oxygen not started"],
       observations: [{ label: "Film", value: "No large pneumothorax" }],
+      outward: [1, 0.15, 0.55],
+      view: "left",
     },
     {
       id: "ventricle",
@@ -77,6 +84,8 @@ const nora: Patient = {
       specialties: ["trauma", "cardiology"],
       meds: ["No cardiac medication charted"],
       observations: [{ label: "Troponin", value: "Rising" }],
+      outward: [0.85, 0.25, 0.7],
+      view: "anterior",
     },
     {
       id: "liver",
@@ -90,6 +99,8 @@ const nora: Patient = {
       specialties: ["trauma", "gi"],
       meds: ["No abdominal medication charted"],
       observations: [{ label: "CT", value: "Pending" }],
+      outward: [-0.65, 0.25, 1],
+      view: "anterior",
     },
     {
       id: "tibia",
@@ -103,6 +114,9 @@ const nora: Patient = {
       specialties: ["trauma"],
       meds: ["Splint ordered, not recorded as placed"],
       observations: [{ label: "Pulses", value: "Present" }],
+      outward: [0.35, 0.1, 1],
+      view: "left",
+      impact: true,
     },
     {
       id: "spleen",
@@ -116,6 +130,8 @@ const nora: Patient = {
       specialties: ["trauma", "gi"],
       meds: [],
       observations: [{ label: "Ultrasound", value: "No free fluid" }],
+      outward: [1, 0.2, 0.15],
+      view: "left",
     },
   ],
 };
@@ -162,6 +178,8 @@ const marcus: Patient = {
         { label: "A1c", value: "8.4%" },
         { label: "Prior", value: "7.9%" },
       ],
+      outward: [0.2, 0.3, 1],
+      view: "anterior",
     },
     {
       id: "kidney",
@@ -178,6 +196,8 @@ const marcus: Patient = {
         { label: "eGFR", value: "52 mL/min" },
         { label: "UACR", value: "64 mg/g" },
       ],
+      outward: [1, 0.1, -0.4],
+      view: "posterior",
     },
     {
       id: "heart",
@@ -191,11 +211,33 @@ const marcus: Patient = {
       specialties: ["cardiology", "primary"],
       meds: ["Lisinopril 20 mg daily"],
       observations: [{ label: "BP", value: "128/78" }],
+      outward: [0.35, 0.55, 0.85],
+      view: "anterior",
     },
   ],
 };
 
 export const seedPatients: Patient[] = [nora, marcus];
+
+/** Anatomy loaded around the findings so the marks sit on a recognisable torso and leg. */
+export const bodyContext = [
+  "skeletal.ribs",
+  "skeletal.sternum",
+  "skeletal.clavicle_l",
+  "skeletal.clavicle_r",
+  "visceral.lungs",
+  "cardiovascular.heart",
+  "visceral.liver",
+  "visceral.stomach",
+  "visceral.pancreas",
+  "visceral.kidney_l",
+  "visceral.colon",
+  "lymphoid.spleen",
+  "skeletal.femur_l",
+  "skeletal.patella_l",
+  "skeletal.tibia_l",
+  "skeletal.fibula_l",
+];
 
 export const tabLabel: Record<TabKind, string> = {
   body: "Body",
@@ -247,6 +289,8 @@ export const ldl190: Finding = {
   specialties: ["cardiology", "primary"],
   meds: [],
   observations: [{ label: "LDL", value: "190 mg/dL" }],
+  outward: [0.15, 0.7, 0.7],
+  view: "anterior",
 };
 
 export const fibula: Finding = {
@@ -261,6 +305,8 @@ export const fibula: Finding = {
   specialties: ["trauma"],
   meds: [],
   observations: [{ label: "Exam", value: "Lateral tenderness" }],
+  outward: [-0.15, 0.05, 1],
+  view: "left",
 };
 
 export const colonScreen: Finding = {
@@ -275,6 +321,8 @@ export const colonScreen: Finding = {
   specialties: ["gi", "primary"],
   meds: [],
   observations: [{ label: "Family", value: "Father, colorectal cancer at 50" }],
+  outward: [0.25, -0.35, 0.95],
+  view: "anterior",
 };
 
 export const labPanel = {
@@ -303,6 +351,8 @@ export const altLab: Finding = {
   specialties: ["gi", "primary"],
   meds: [],
   observations: [{ label: "ALT", value: "88 U/L, high" }],
+  outward: [-0.2, 0.55, 0.9],
+  view: "anterior",
 };
 
 export const creatinineLab: Finding = {
@@ -317,4 +367,6 @@ export const creatinineLab: Finding = {
   specialties: ["primary"],
   meds: [],
   observations: [{ label: "Creatinine", value: "1.3 mg/dL, high" }],
+  outward: [1, 0.05, 0.35],
+  view: "left",
 };

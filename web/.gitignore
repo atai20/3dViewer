@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# atlas links, created by scripts/link-atlas.mjs
+/vendor
+/public/anatomy-data

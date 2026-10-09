@@ -13,7 +13,7 @@ import { TimelineTab } from "./timeline-tab";
 export function TabContent({ tab }: { tab: WorkTab }) {
   switch (tab.kind) {
     case "body":
-      return <BodyTab patientId={tab.patientId} />;
+      return <BodyTab key={tab.id} patientId={tab.patientId} />;
     case "region":
       return <RegionTab patientId={tab.patientId} findingId={tab.refId!} />;
     case "timeline":

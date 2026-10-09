@@ -166,3 +166,67 @@
 @media (prefers-reduced-motion: reduce) {
   .listening-ring { animation: none; }
 }
+
+/* Labels the scene overlay places over the 3D stage. Built imperatively, so they are styled here. */
+.body-stage[data-tool="probe"] canvas,
+.body-stage[data-tool="measure"] canvas,
+.body-stage[data-tool="mark"] canvas {
+  cursor: crosshair;
+}
+
+.body-labels .tag,
+.body-labels .measure-tag {
+  position: absolute;
+  pointer-events: auto;
+  transform: translate(-50%, calc(-100% - 6px));
+  max-width: 190px;
+  border-radius: 8px;
+  padding: 5px 10px 6px;
+  background: rgb(11 19 17 / 0.88);
+  color: var(--ivory);
+  text-align: left;
+  box-shadow: 0 8px 22px rgb(0 0 0 / 0.25);
+  backdrop-filter: blur(6px);
+}
+
+.body-labels .tag span {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(250 248 243 / 0.55);
+}
+
+.body-labels .tag strong {
+  display: block;
+  margin-top: 1px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.body-labels .tag.critical span { color: #f0a597; }
+.body-labels .tag.watch span { color: #ecc987; }
+.body-labels .tag.clear span { color: #a9cfc1; }
+.body-labels .tag.is-active { box-shadow: 0 0 0 1px rgb(111 214 193 / 0.7), 0 8px 22px rgb(0 0 0 / 0.25); }
+
+.body-labels .tag input {
+  margin-top: 6px;
+  width: 100%;
+  border: 1px solid rgb(250 248 243 / 0.2);
+  border-radius: 6px;
+  background: transparent;
+  padding: 4px 8px;
+  font-size: 13px;
+  color: var(--ivory);
+  outline: none;
+}
+
+.body-labels .tag input:focus { border-color: rgb(111 214 193 / 0.7); }
+
+.body-labels .measure-tag {
+  transform: translate(-50%, -50%);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}

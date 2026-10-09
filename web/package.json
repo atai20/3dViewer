@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "predev": "node scripts/link-atlas.mjs",
+    "prebuild": "node scripts/link-atlas.mjs",
+    "link-atlas": "node scripts/link-atlas.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

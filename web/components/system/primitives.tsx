@@ -44,8 +44,8 @@ export function Section({ title, children, className }: { title: string; childre
   );
 }
 
-export function Page({ children }: { children: ReactNode }) {
-  return <div className="mx-auto w-full max-w-5xl px-12 py-12">{children}</div>;
+export function Page({ children, wide }: { children: ReactNode; wide?: boolean }) {
+  return <div className={cn("mx-auto w-full px-12 py-12", wide ? "max-w-7xl" : "max-w-5xl")}>{children}</div>;
 }
 
 export function StatusText({ status }: { status: "approved" | "rejected" | "pending" }) {

@@ -19,7 +19,11 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@atlas/*": ["./vendor/atlas/src/*"],
+      "@authorod/svitylo-3d-anatomy-atlas/core": ["./vendor/atlas/src/core/index.ts"],
+      "three": ["./vendor/atlas/node_modules/@types/three"],
+      "three/addons/*": ["./vendor/atlas/node_modules/@types/three/examples/jsm/*"]
     }
   },
   "include": [
@@ -30,5 +34,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "vendor"]
 }
